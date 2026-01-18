@@ -1,5 +1,5 @@
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import FileUpload from "@/components/FileUpload";
 import EmptyState from "@/components/EmptyState";
@@ -18,12 +18,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { queryKeys } from "@/lib/queryKeys";
+import { queryClient } from "@/lib/queryClient";
+import { electronBridge, type Category } from "@/lib/electronBridge";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useProductFiltering } from "@/hooks/useProductFiltering";
 import { useUploadsViewModel } from "@/hooks/useUploadsViewModel";
+import { useToast } from "@/hooks/use-toast";
 import type { Product } from "@shared/schema";
 
 export default function Home() {
+  const { toast } = useToast();
+
   const {
     uploads,
     currentUploadId,
@@ -33,11 +38,24 @@ export default function Home() {
     hasUploads,
   } = useUploadsViewModel();
 
-  const { handleFileUpload, isLoading: isUploadingFile } = useFileUpload();
+  const {
+    handleFileUpload,
+    handleMultipleFilesUpload,
+    handleElectronFileUpload,
+    isLoading: isUploadingFile,
+    loadingProgress,
+    isElectron
+  } = useFileUpload();
 
   const { data: products = [], isLoading: isLoadingProducts } = useQuery<Product[]>({
     queryKey: queryKeys.uploads.products(currentUploadId || ""),
     enabled: !!currentUploadId,
+  });
+
+  // Načíst všechny kategorie
+  const { data: allCategories = [] } = useQuery<Category[]>({
+    queryKey: queryKeys.categories.all,
+    queryFn: () => electronBridge.getAllCategories(),
   });
 
   const {
@@ -51,8 +69,46 @@ export default function Home() {
     resetFilters,
   } = useProductFiltering(products);
 
+  // Mutace pro update kategorie produktu
+  const updateProductCategoryMutation = useMutation({
+    mutationFn: async ({ productId, category }: { productId: string; category: string | null }) => {
+      return electronBridge.updateProductCategory(productId, category);
+    },
+    onSuccess: () => {
+      // Invalidovat cache produktů pro aktuální upload
+      if (currentUploadId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.uploads.products(currentUploadId) });
+      }
+    },
+    onError: (error) => {
+      toast({
+        title: "Chyba",
+        description: error instanceof Error ? error.message : "Nepodařilo se aktualizovat kategorii",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCategoryChange = (productId: string, category: string | null) => {
+    updateProductCategoryMutation.mutate({ productId, category });
+  };
+
   const onFileSelect = (file: File) => {
     handleFileUpload(file, (uploadId) => {
+      setCurrentUploadId(uploadId);
+      resetFilters();
+    });
+  };
+
+  const onFilesSelect = (files: File[]) => {
+    handleMultipleFilesUpload(files, (uploadId) => {
+      setCurrentUploadId(uploadId);
+      resetFilters();
+    });
+  };
+
+  const onElectronSelect = () => {
+    handleElectronFileUpload((uploadId) => {
       setCurrentUploadId(uploadId);
       resetFilters();
     });
@@ -77,7 +133,13 @@ export default function Home() {
                   </p>
                 </div>
 
-                <FileUpload onFileSelect={onFileSelect} isLoading={isUploadingFile} />
+                <FileUpload
+                      onFileSelect={onFileSelect}
+                      onFilesSelect={onFilesSelect}
+                      onElectronSelect={onElectronSelect}
+                      isLoading={isUploadingFile}
+                      loadingProgress={loadingProgress}
+                    />
 
                 {uploads.length > 0 && (
                   <div className="space-y-2">
@@ -164,7 +226,12 @@ export default function Home() {
                   />
                 </div>
 
-                <DataTable data={filteredData} isMobile={isMobile} />
+                <DataTable
+                  data={filteredData}
+                  isMobile={isMobile}
+                  categories={allCategories}
+                  onCategoryChange={handleCategoryChange}
+                />
 
                 {filteredData.length === 0 && (searchQuery || selectedCategory !== "all") && (
                   <div className="flex min-h-[200px] items-center justify-center">

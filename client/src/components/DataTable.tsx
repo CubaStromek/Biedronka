@@ -7,20 +7,35 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@shared/utils";
 import type { ProductDisplay } from "@shared/schema";
+import type { Category } from "@/lib/electronBridge";
 
 interface DataTableProps {
   data: ProductDisplay[];
   isMobile?: boolean;
+  categories?: Category[];
+  onCategoryChange?: (productId: string, category: string | null) => void;
 }
 
 type SortField = keyof ProductDisplay;
 type SortDirection = "asc" | "desc" | null;
 
-export default function DataTable({ data, isMobile = false }: DataTableProps) {
+export default function DataTable({
+  data,
+  isMobile = false,
+  categories = [],
+  onCategoryChange,
+}: DataTableProps) {
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
@@ -71,6 +86,9 @@ export default function DataTable({ data, isMobile = false }: DataTableProps) {
     return <ArrowDown className="ml-2 h-4 w-4" />;
   };
 
+  // Vždy zobrazit sloupec kategorie pokud máme kategorie k výběru
+  const showCategoryColumn = !isMobile && categories.length > 0;
+
   return (
     <div className="rounded-lg border">
       <div className="overflow-x-auto">
@@ -88,8 +106,8 @@ export default function DataTable({ data, isMobile = false }: DataTableProps) {
                   <SortIcon field="name" />
                 </Button>
               </TableHead>
-              {!isMobile && data.some((item) => item.category) && (
-                <TableHead className="w-40">
+              {showCategoryColumn && (
+                <TableHead className="w-48">
                   <Button
                     variant="ghost"
                     onClick={() => handleSort("category")}
@@ -118,7 +136,7 @@ export default function DataTable({ data, isMobile = false }: DataTableProps) {
             {sortedData.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={3}
+                  colSpan={showCategoryColumn ? 3 : 2}
                   className="h-24 text-center text-muted-foreground"
                 >
                   Žádné produkty nenalezeny
@@ -134,9 +152,30 @@ export default function DataTable({ data, isMobile = false }: DataTableProps) {
                   <TableCell className="font-medium" data-testid={`text-name-${index}`}>
                     {row.name}
                   </TableCell>
-                  {!isMobile && data.some((item) => item.category) && (
-                    <TableCell className="text-muted-foreground" data-testid={`text-category-${index}`}>
-                      {row.category || "-"}
+                  {showCategoryColumn && (
+                    <TableCell data-testid={`text-category-${index}`}>
+                      <Select
+                        value={row.category || "__none__"}
+                        onValueChange={(value) => {
+                          if (onCategoryChange) {
+                            onCategoryChange(row.id, value === "__none__" ? null : value);
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="w-full h-8 text-sm">
+                          <SelectValue placeholder="Vyberte kategorii" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">
+                            <span className="text-muted-foreground">Bez kategorie</span>
+                          </SelectItem>
+                          {categories.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.name}>
+                              {cat.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                   )}
                   <TableCell className="text-right font-semibold tabular-nums" data-testid={`text-total-price-${index}`}>

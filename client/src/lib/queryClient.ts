@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { electronBridge, isElectron } from "./electronBridge";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -24,17 +25,42 @@ export async function apiRequest(
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
-export const getQueryFn: <T>(options: {
+
+export const getQueryFn: <TData>(options: {
   on401: UnauthorizedBehavior;
-}) => QueryFunction<T> =
+}) => QueryFunction<TData> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    // V Electron použít bridge
+    if (isElectron()) {
+      const key = queryKey[0] as string;
+
+      if (key === '/api/uploads') {
+        // Pokud je druhý parametr, je to uploadId pro produkty
+        if (queryKey.length > 1 && queryKey[1]) {
+          return electronBridge.getProductsByUpload(queryKey[1] as string) as never;
+        }
+        return electronBridge.getAllUploads() as never;
+      }
+
+      if (key === '/api/price-history') {
+        return electronBridge.getPriceHistory() as never;
+      }
+
+      // Pro produkty konkrétního uploadu
+      if (key.startsWith('/api/uploads/') && key.endsWith('/products')) {
+        const uploadId = key.split('/')[3];
+        return electronBridge.getProductsByUpload(uploadId) as never;
+      }
+    }
+
+    // Fallback pro web verzi
     const res = await fetch(queryKey.join("/") as string, {
       credentials: "include",
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+      return null as never;
     }
 
     await throwIfResNotOk(res);

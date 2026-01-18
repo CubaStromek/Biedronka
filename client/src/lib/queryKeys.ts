@@ -7,4 +7,7 @@ export const queryKeys = {
   priceHistory: {
     all: ["/api/price-history"] as const,
   },
+  categories: {
+    all: ["/api/categories"] as const,
+  },
 } as const;

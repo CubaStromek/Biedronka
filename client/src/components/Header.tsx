@@ -4,6 +4,7 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import CategoryManager from "@/components/CategoryManager";
 
 export default function Header() {
   const { theme, toggleTheme } = useTheme();
@@ -30,6 +31,7 @@ export default function Header() {
               </Button>
             </Link>
           )}
+          <CategoryManager />
           <Button
             variant="ghost"
             size="icon"

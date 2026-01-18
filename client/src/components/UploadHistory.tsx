@@ -12,6 +12,16 @@ interface UploadHistoryProps {
   onDeleteUpload: (uploadId: string) => void;
 }
 
+// Parsuje datum z názvu souboru ve formátu DD/MM/YYYY
+function parseDateFromFilename(filename: string): Date | null {
+  const match = filename.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (match) {
+    const [, day, month, year] = match;
+    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  }
+  return null;
+}
+
 export default function UploadHistory({
   uploads,
   currentUploadId,
@@ -22,11 +32,27 @@ export default function UploadHistory({
     return null;
   }
 
+  // Seřadit uploady podle data nákupu (z názvu souboru), nejnovější nahoře
+  const sortedUploads = [...uploads].sort((a, b) => {
+    const dateA = parseDateFromFilename(a.filename);
+    const dateB = parseDateFromFilename(b.filename);
+
+    // Pokud oba mají datum v názvu, řadit podle něj
+    if (dateA && dateB) {
+      return dateB.getTime() - dateA.getTime();
+    }
+    // Pokud jen jeden má datum, ten s datem jde první
+    if (dateA) return -1;
+    if (dateB) return 1;
+    // Jinak řadit podle uploadedAt
+    return new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime();
+  });
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold tracking-tight">Historie nahrání</h3>
       <div className="space-y-2">
-        {uploads.map((upload) => (
+        {sortedUploads.map((upload) => (
           <Card
             key={upload.id}
             className={`p-4 cursor-pointer transition-colors ${

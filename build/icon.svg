@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Yellow background circle -->
+  <circle cx="256" cy="256" r="256" fill="#FFD700"/>
+
+  <!-- Ladybug body (red) -->
+  <ellipse cx="256" cy="300" rx="140" ry="160" fill="#E31837"/>
+
+  <!-- Body dividing line -->
+  <line x1="256" y1="140" x2="256" y2="460" stroke="#1a1a1a" stroke-width="6"/>
+
+  <!-- Black spots on left side -->
+  <circle cx="190" cy="220" r="25" fill="#1a1a1a"/>
+  <circle cx="170" cy="320" r="28" fill="#1a1a1a"/>
+  <circle cx="200" cy="400" r="22" fill="#1a1a1a"/>
+
+  <!-- Black spots on right side -->
+  <circle cx="322" cy="220" r="25" fill="#1a1a1a"/>
+  <circle cx="342" cy="320" r="28" fill="#1a1a1a"/>
+  <circle cx="312" cy="400" r="22" fill="#1a1a1a"/>
+
+  <!-- Head (black) -->
+  <circle cx="256" cy="130" r="70" fill="#1a1a1a"/>
+
+  <!-- Eyes (white) -->
+  <circle cx="226" cy="110" r="22" fill="white"/>
+  <circle cx="286" cy="110" r="22" fill="white"/>
+
+  <!-- Pupils -->
+  <circle cx="230" cy="108" r="10" fill="#1a1a1a"/>
+  <circle cx="290" cy="108" r="10" fill="#1a1a1a"/>
+
+  <!-- Eye shine -->
+  <circle cx="234" cy="104" r="4" fill="white"/>
+  <circle cx="294" cy="104" r="4" fill="white"/>
+
+  <!-- Smile -->
+  <path d="M 230 145 Q 256 170 282 145" stroke="white" stroke-width="5" fill="none" stroke-linecap="round"/>
+
+  <!-- Antennae -->
+  <path d="M 230 75 Q 210 40 190 30" stroke="#1a1a1a" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <path d="M 282 75 Q 302 40 322 30" stroke="#1a1a1a" stroke-width="8" fill="none" stroke-linecap="round"/>
+
+  <!-- Antennae tips -->
+  <circle cx="190" cy="30" r="12" fill="#1a1a1a"/>
+  <circle cx="322" cy="30" r="12" fill="#1a1a1a"/>
+</svg>

@@ -1,35 +1,32 @@
-import { sql } from "drizzle-orm";
-import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const uploads = sqliteTable("uploads", {
-  id: text("id").primaryKey().default(sql`(lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6))))`),
-  filename: text("filename").notNull(),
-  uploadedAt: integer("uploaded_at", { mode: "timestamp" }).notNull().default(sql`(strftime('%s', 'now'))`),
-});
+// Upload type
+export interface Upload {
+  id: string;
+  filename: string;
+  uploadedAt: Date;
+}
 
-export const products = sqliteTable("products", {
-  id: text("id").primaryKey().default(sql`(lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6))))`),
-  uploadId: text("upload_id").notNull().references(() => uploads.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
-  totalPrice: real("total_price").notNull(),
-  category: text("category"),
-});
+// Product type
+export interface Product {
+  id: string;
+  uploadId: string;
+  name: string;
+  totalPrice: number;
+  category: string | null;
+}
 
-export const insertUploadSchema = createInsertSchema(uploads).omit({
-  id: true,
-  uploadedAt: true,
-});
+// Insert types
+export interface InsertUpload {
+  filename: string;
+}
 
-export const insertProductSchema = createInsertSchema(products).omit({
-  id: true,
-});
-
-export type InsertUpload = z.infer<typeof insertUploadSchema>;
-export type Upload = typeof uploads.$inferSelect;
-export type InsertProduct = z.infer<typeof insertProductSchema>;
-export type Product = typeof products.$inferSelect;
+export interface InsertProduct {
+  uploadId: string;
+  name: string;
+  totalPrice: number;
+  category?: string | null;
+}
 
 // Display types for frontend
 export interface ProductDisplay {
@@ -45,10 +42,17 @@ export interface Statistics {
   averagePrice: number;
 }
 
+// Category type
+export interface Category {
+  id: string;
+  name: string;
+  sortOrder: number;
+}
+
 // Price history types
 export interface PricePoint {
   price: number;
-  uploadDate: string; // ISO date string from API
+  uploadDate: string; // ISO date string
   uploadFilename: string;
 }
 
@@ -58,10 +62,10 @@ export interface PriceHistoryItem {
   priceHistory: PricePoint[];
 }
 
-// Zod schemas for price history validation
+// Zod schemas for validation
 export const pricePointSchema = z.object({
   price: z.number().positive(),
-  uploadDate: z.string().datetime(),
+  uploadDate: z.string(),
   uploadFilename: z.string().min(1),
 });
 

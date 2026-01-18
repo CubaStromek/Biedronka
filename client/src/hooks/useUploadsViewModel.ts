@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import { queryKeys } from "@/lib/queryKeys";
+import { electronBridge } from "@/lib/electronBridge";
 import type { Upload } from "@shared/schema";
 
 export function useUploadsViewModel() {
@@ -26,7 +27,7 @@ export function useUploadsViewModel() {
 
   const deleteUploadMutation = useMutation({
     mutationFn: async (uploadId: string) => {
-      await apiRequest("DELETE", `/api/uploads/${uploadId}`);
+      await electronBridge.deleteUpload(uploadId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.uploads.all });

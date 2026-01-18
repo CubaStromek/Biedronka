@@ -1,16 +1,38 @@
-node_modules
-dist
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+dist-electron/
+client-dist/
+electron-dist/
+
+# OS files
 .DS_Store
-server/public
-vite.config.ts.*
-*.tar.gz
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
 
 # Database files
-local.db
 *.db
 *.db-shm
 *.db-wal
-data/
 
-# Railway
-.railway/
+# Logs
+*.log
+npm-debug.log*
+
+# Temporary files
+*.tmp
+nul
+
+# Build artifacts
+*.tar.gz
+*.zip
+
+# Vite
+vite.config.ts.*
