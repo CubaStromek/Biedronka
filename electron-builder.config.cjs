@@ -16,7 +16,19 @@ module.exports = {
     "dist-electron/**/*",
     "client-dist/**/*",
     "package.json",
+    // Vyloučit nepotřebné soubory
+    "!**/node_modules/**/*.md",
+    "!**/node_modules/**/*.txt",
+    "!**/node_modules/**/LICENSE*",
+    "!**/node_modules/**/CHANGELOG*",
+    "!**/node_modules/**/*.map",
+    "!**/node_modules/**/test/**",
+    "!**/node_modules/**/tests/**",
+    "!**/node_modules/**/__tests__/**",
   ],
+
+  // Ponechat pouze češtinu a angličtinu (ušetří ~44 MB)
+  electronLanguages: ["en", "cs"],
 
   // Extra metadata pro Electron
   extraMetadata: {
