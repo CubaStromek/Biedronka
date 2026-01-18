@@ -31,9 +31,22 @@ module.exports = {
     "**/node_modules/file-uri-to-path/**/*",
   ],
 
-  // Windows specifická konfigurace - pouze dir target (bez instalátoru)
+  // Windows specifická konfigurace
   win: {
-    target: 'dir',
+    target: 'nsis',
     icon: 'build/icon.ico',
+  },
+
+  // NSIS instalátor - průvodce instalací
+  nsis: {
+    oneClick: false,
+    allowToChangeInstallationDirectory: true,
+    installerIcon: 'build/icon.ico',
+    uninstallerIcon: 'build/icon.ico',
+    installerHeaderIcon: 'build/icon.ico',
+    createDesktopShortcut: true,
+    createStartMenuShortcut: true,
+    shortcutName: 'Biedronka',
+    license: 'LICENSE.txt',
   },
 };
